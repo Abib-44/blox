@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CV Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sidebar-bg: #1f2e26;
+  --sidebar-text: #e8e4d8;
+  --sidebar-muted: #9fae9f;
+  --paper-bg: #f7f3ea;
+  --ink: #2b2b28;
+  --ink-soft: #55534c;
+  --gold: #a8763c;
+  --rule: #d8d0bd;
+  --editor-bg: #14181a;
+  --editor-panel: #1c2226;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Lato', sans-serif;
+  background: var(--editor-bg);
+  color: #d7dadb;
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+.editor {
+  width: 420px;
+  min-width: 420px;
+  background: var(--editor-panel);
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #2a3236;
+}
+.editor-header { padding: 16px 18px; border-bottom: 1px solid #2a3236; }
+.editor-header h2 { font-size: 14px; letter-spacing: 1px; text-transform: uppercase; color: var(--gold); }
+
+.editor-toolbar {
+  display: flex;
+  gap: 10px;
+  padding: 12px 18px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+button, .file-btn {
+  background: #2a3236;
+  color: #d7dadb;
+  border: 1px solid #3a444a;
+  border-radius: 4px;
+  padding: 8px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+button:hover, .file-btn:hover { background: #3a444a; }
+#fileInput { display: none; }
+
+#jsonInput {
+  flex: 1;
+  background: #0e1113;
+  color: #c5e3c8;
+  border: none;
+  padding: 16px 18px;
+  font-family: monospace;
+  font-size: 12.8px;
+  line-height: 1.5;
+  resize: none;
+  outline: none;
+}
+#status { padding: 10px 18px; font-size: 12px; border-top: 1px solid #2a3236; }
+#status.ok { color: #7fbf82; }
+#status.error { color: #d9776a; }
+
+.preview-wrap {
+  flex: 1;
+  overflow: auto;
+  padding: 30px 20px;
+  display: flex;
+  justify-content: center;
+  background: #0f1214;
+}
+
+.page {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  width: 210mm;
+  min-height: 297mm;
+  background: var(--paper-bg);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+
+/* CV Style */
+.sidebar { background: var(--sidebar-bg); color: var(--sidebar-text); padding: 40px 32px; }
+.avatar {
+  width: 96px; height: 96px; border-radius: 50%;
+  border: 2px solid var(--gold); margin: 0 auto 32px;
+  background: #3a4d40; display: flex; align-items: center; justify-content: center;
+  font-family: 'Playfair Display', serif; font-size: 28px; color: var(--sidebar-text);
+}
+.side-block { margin-bottom: 30px; }
+.side-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); font-weight: 700; margin-bottom: 10px; }
+.side-item { font-size: 13.5px; line-height: 1.5; margin-bottom: 10px; }
+.side-item strong { color: #fff; }
+.side-links { display: flex; flex-direction: column; gap: 8px; }
+.side-links a {
+  color: var(--sidebar-text);
+  font-size: 13px;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(232,228,216,0.35);
+  padding-bottom: 3px;
+  width: fit-content;
+}
+.side-links a:hover { color: var(--gold); border-color: var(--gold); }
+
+.formation-entry {
+  border-left: 2px solid var(--gold);
+  padding-left: 12px;
+  margin-bottom: 18px;
+}
+.formation-entry:last-child { margin-bottom: 0; }
+.formation-year {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.formation-title { font-size: 13.5px; font-weight: 700; color: #fff; line-height: 1.35; }
+.formation-school { font-size: 12px; font-style: italic; color: var(--sidebar-muted); margin-top: 2px; }
+
+.content { padding: 44px 48px; }
+h1 { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 600; color: var(--ink); }
+.role { color: var(--gold); font-size: 13px; letter-spacing: 2.5px; text-transform: uppercase; font-weight: 700; margin-top: 6px; }
+.availability { font-size: 12.5px; color: var(--ink-soft); margin-top: 6px; }
+.header-rule { width: 60px; height: 2px; background: var(--gold); margin: 18px 0 28px; }
+.section { margin-bottom: 30px; }
+.section-title { display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px; }
+.section-num { font-family: 'Playfair Display', serif; font-style: italic; color: var(--gold); font-size: 19px; }
+.section-name { font-size: 12.5px; letter-spacing: 2.5px; text-transform: uppercase; font-weight: 700; color: var(--ink); }
+.profil-text { font-size: 13.8px; line-height: 1.65; color: var(--ink-soft); }
+.entry { position: relative; padding-left: 20px; margin-bottom: 22px; border-left: 1px solid var(--rule); }
+.entry:last-child { margin-bottom: 0; }
+.entry::before { content: ''; position: absolute; left: -5px; top: 4px; width: 9px; height: 9px; border-radius: 50%; background: var(--paper-bg); border: 2px solid var(--gold); }
+.entry-date { font-size: 11.5px; letter-spacing: 1.5px; color: var(--gold); font-weight: 700; }
+.entry-title { font-size: 15.5px; font-weight: 700; margin-top: 3px; color: var(--ink); }
+.entry-org { font-size: 13px; font-style: italic; color: var(--ink-soft); margin-top: 1px; }
+.entry ul { margin: 10px 0 8px 18px; }
+.entry li { font-size: 13.2px; line-height: 1.55; margin-bottom: 5px; color: var(--ink); }
+.entry-stack { font-size: 12px; color: var(--ink-soft); margin-top: 6px; }
+.entry-stack b { color: var(--ink); font-weight: 700; }
+
+@media print {
+  .editor { display: none; }
+  .preview-wrap { padding: 0; background: none; }
+  .page { box-shadow: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="editor">
+  <div class="editor-header"><h2>CV Data (JSON)</h2></div>
+  <div class="editor-toolbar">
+    <button id="btnApply">Appliquer</button>
+    <button id="btnReset">Réinitialiser</button>
+    <label class="file-btn" for="fileInput">📄 Charger fichier</label>
+    <input type="file" id="fileInput" accept="application/json">
+    <button id="btnDownloadJson">↓ Exporter JSON</button>
+    <button id="btnDownloadHtml">↓ Exporter HTML</button>
+  </div>
+  <textarea id="jsonInput" spellcheck="false"></textarea>
+  <div id="status"></div>
+</div>
+
+<div class="preview-wrap">
+  <div class="page" id="preview"></div>
+</div>
+
+<script>
+const FIXED = {
+  fullName: "El Habib Benaboud",
+  contact: {
+    location: "Lyon",
+    phone: "06 52 68 72 35",
+    email: "elh.benaboud@gmail.com"
+  },
+  links: [
+    { label: "Portfolio", url: "#" },
+    { label: "Projets DevOps", url: "#" },
+    { label: "Projets Développement", url: "#" },
+    { label: "LinkedIn", url: "#" }
+  ]
+};
+
+const DEFAULT_DATA = {
+  role: "Alternant Développeur Web (H/F)",
+  availability: "Disponible dès septembre 2026 — Rythme : 3 semaines entreprise / 1 semaine d'école",
+  profile: "Développeur back-end formé sur des projets réels en production (datacenter, PHP/Laravel). Alternance visée pour approfondir Linux, Docker et CI/CD tout en contribuant dès mon arrivée.",
+  skills: {
+    "Backend": "PHP, Phalcon",
+    "Frontend": "HTML5, CSS3, JavaScript, Bootstrap",
+    "Database": "MySQL / MariaDB",
+    "DevOps / Tools": "Docker, Linux, Bash Scripts, GitHub"
+  },
+  formation: [
+    { year: "2026 — Présent", title: "Développeur web • Bac +3", school: "CESI École d'Ingénieurs — Lyon" },
+    { year: "2023 — 2024", title: "Développeur Web & Web Mobile • Bac +2", school: "CCI Formation — Lyon" }
+  ],
+  experience: [
+    {
+      date: "Mars — Sept. 2025",
+      title: "Développeur Back-End",
+      org: "Nexeren",
+      bullets: [
+        "Livraison systématique à +33% des points assignés par sprint (30 assignés → 40 livrés)",
+        "Refactoring du mapping Elasticsearch (edge-ngram sur les champs titre), réduisant les résultats non pertinents de 70%",
+        "Intégration et configuration de services tiers dans une stack Docker Compose"
+      ],
+      stack: "PHP · Laravel · Docker · Kubernetes · Linux · SQL · MySQL · Bash"
+    },
+    {
+      date: "Sept. — Déc. 2024",
+      title: "Développeur Back-End — Stage",
+      org: "CCI",
+      bullets: [
+        "Refactoring de la couche service Laravel, réduisant d'environ 10% le temps d'exécution des requêtes",
+        "Mise en place d'une pipeline GitLab CI/CD automatisant le build pour un déploiement immédiat"
+      ],
+      stack: "PHP · Laravel · Linux · SQL · MySQL · GitLab CI/CD · Docker"
+    }
+  ],
+  projects: [
+    {
+      date: "2025 — Présent",
+      title: "Home Lab Proxmox",
+      org: "Serveur personnel auto-hébergé",
+      bullets: [
+        "Serveur maison pour héberger sites web et services, accès Linux isolés par service",
+        "Supervision système via Prometheus et Grafana"
+      ],
+      stack: "Docker · Proxmox · MinIO · Grafana · Prometheus · Bash · Linux"
+    },
+    {
+      date: "2026",
+      title: "Plateforme de gestion administrative universitaire",
+      org: "Projet académique",
+      bullets: [
+        "Pipeline bout-en-bout : Python/boto3 vers stockage objet MinIO, puis PostgreSQL",
+        "CI/CD GitLab intégré pour le déploiement automatisé de l'infrastructure"
+      ],
+      stack: "PHP · Symfony · MySQL"
+    }
+  ]
+};
+
+function escapeHtml(value) {
+  return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function renderEntry(entry) {
+  const bullets = entry.bullets ? entry.bullets.map(b => `<li>${escapeHtml(b)}</li>`).join("") : "";
+  return `
+    <div class="entry">
+      <div class="entry-date">${escapeHtml(entry.date)}</div>
+      <div class="entry-title">${escapeHtml(entry.title)}</div>
+      <div class="entry-org">${escapeHtml(entry.org)}</div>
+      ${bullets ? `<ul>${bullets}</ul>` : ''}
+      ${entry.stack ? `<div class="entry-stack"><b>Stack :</b> ${escapeHtml(entry.stack)}</div>` : ''}
+    </div>`;
+}
+
+function renderCV(data) {
+  const skillsHtml = Object.entries(data.skills || {}).map(([k,v]) =>
+    `<div class="side-item"><strong>${escapeHtml(k)} :</strong> ${escapeHtml(v)}</div>`
+  ).join('');
+
+  const formationHtml = (data.formation || []).map(f => `
+    <div class="formation-entry">
+      <div class="formation-year">${escapeHtml(f.year)}</div>
+      <div class="formation-title">${escapeHtml(f.title)}</div>
+      <div class="formation-school">${escapeHtml(f.school)}</div>
+    </div>`).join('');
+
+  const linksHtml = (FIXED.links || []).map(l =>
+    `<a href="${escapeHtml(l.url)}" target="_blank" rel="noopener">${escapeHtml(l.label)}</a>`
+  ).join('');
+
+  const experienceHtml = (data.experience || []).map(renderEntry).join('');
+  const projectsHtml = (data.projects || []).map(renderEntry).join('');
+
+  return `
+    <aside class="sidebar">
+      <div class="avatar">${FIXED.fullName.split(" ").map(w => w[0]).join("")}</div>
+      <div class="side-block">
+        <div class="side-label">Contact</div>
+        <div class="side-item"><strong>Localisation</strong><br>${escapeHtml(FIXED.contact.location)}</div>
+        <div class="side-item"><strong>Téléphone</strong><br>${escapeHtml(FIXED.contact.phone)}</div>
+        <div class="side-item"><strong>Email</strong><br>${escapeHtml(FIXED.contact.email)}</div>
+      </div>
+      <div class="side-block">
+        <div class="side-label">Compétences</div>
+        ${skillsHtml}
+      </div>
+      <div class="side-block">
+        <div class="side-label">Liens</div>
+        <div class="side-links">${linksHtml}</div>
+      </div>
+      <div class="side-block">
+        <div class="side-label">Formation</div>
+        ${formationHtml}
+      </div>
+    </aside>
+    <main class="content">
+      <h1>${escapeHtml(FIXED.fullName)}</h1>
+      <div class="role">${escapeHtml(data.role || '')}</div>
+      <div class="availability">${escapeHtml(data.availability || '')}</div>
+      <div class="header-rule"></div>
+      <section class="section">
+        <div class="section-title"><span class="section-num">01</span><span class="section-name">Profil</span></div>
+        <p class="profil-text">${escapeHtml(data.profile || '')}</p>
+      </section>
+      <section class="section">
+        <div class="section-title"><span class="section-num">02</span><span class="section-name">Expérience</span></div>
+        ${experienceHtml}
+      </section>
+      <section class="section">
+        <div class="section-title"><span class="section-num">03</span><span class="section-name">Projets</span></div>
+        ${projectsHtml}
+      </section>
+    </main>`;
+}
+
+// App
+const previewEl = document.getElementById("preview");
+const jsonInput = document.getElementById("jsonInput");
+const statusEl = document.getElementById("status");
+const fileInput = document.getElementById("fileInput");
+let currentData = DEFAULT_DATA;
+
+function mount() {
+  previewEl.innerHTML = renderCV(currentData);
+}
+
+function download(filename, content, mime) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById("btnApply").addEventListener("click", () => {
+  try {
+    currentData = JSON.parse(jsonInput.value);
+    mount();
+    statusEl.textContent = "✅ CV mis à jour";
+    statusEl.className = "ok";
+  } catch (e) {
+    statusEl.textContent = "❌ Erreur JSON : " + e.message;
+    statusEl.className = "error";
+  }
+});
+
+document.getElementById("btnReset").addEventListener("click", () => {
+  currentData = DEFAULT_DATA;
+  jsonInput.value = JSON.stringify(DEFAULT_DATA, null, 2);
+  mount();
+  statusEl.textContent = "Réinitialisé";
+  statusEl.className = "ok";
+});
+
+fileInput.addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (evt) => {
+    try {
+      currentData = JSON.parse(evt.target.result);
+      jsonInput.value = JSON.stringify(currentData, null, 2);
+      mount();
+      statusEl.textContent = "✅ Fichier chargé";
+      statusEl.className = "ok";
+    } catch (err) {
+      statusEl.textContent = "❌ Erreur JSON : " + err.message;
+      statusEl.className = "error";
+    }
+  };
+  reader.readAsText(file);
+  fileInput.value = "";
+});
+
+document.getElementById("btnDownloadJson").addEventListener("click", () => {
+  download("cv-data.json", JSON.stringify(currentData, null, 2), "application/json");
+});
+
+document.getElementById("btnDownloadHtml").addEventListener("click", () => {
+  const fullHtml = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>${FIXED.fullName} — CV</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+<style>${document.querySelector('style').textContent}
+body{background:var(--paper-bg);height:auto;overflow:visible;display:block;}
+.page{margin:0 auto;}
+</style>
+</head>
+<body>
+<div class="page">${renderCV(currentData)}</div>
+</body>
+</html>`;
+  download("cv.html", fullHtml, "text/html");
+});
+
+// Init
+jsonInput.value = JSON.stringify(DEFAULT_DATA, null, 2);
+mount();
+statusEl.textContent = "Prêt";
+statusEl.className = "ok";
+</script>
+</body>
+</html>
