@@ -6,7 +6,7 @@
 <title>CV Generator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Lato:wght@400;700&display=swap" rel="stylesheet">
-<style>
+<style id="cv-styles">
 :root {
   --sidebar-bg: #1f2e26;
   --sidebar-text: #e8e4d8;
@@ -16,71 +16,10 @@
   --ink-soft: #55534c;
   --gold: #a8763c;
   --rule: #d8d0bd;
-  --editor-bg: #14181a;
-  --editor-panel: #1c2226;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: 'Lato', sans-serif;
-  background: var(--editor-bg);
-  color: #d7dadb;
-  display: flex;
-  height: 100vh;
-  overflow: hidden;
-}
-.editor {
-  width: 420px;
-  min-width: 420px;
-  background: var(--editor-panel);
-  display: flex;
-  flex-direction: column;
-  border-right: 1px solid #2a3236;
-}
-.editor-header { padding: 16px 18px; border-bottom: 1px solid #2a3236; }
-.editor-header h2 { font-size: 14px; letter-spacing: 1px; text-transform: uppercase; color: var(--gold); }
-.editor-toolbar {
-  display: flex;
-  gap: 10px;
-  padding: 12px 18px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-button, .file-btn {
-  background: #2a3236;
-  color: #d7dadb;
-  border: 1px solid #3a444a;
-  border-radius: 4px;
-  padding: 8px 14px;
-  font-size: 13px;
-  cursor: pointer;
-  white-space: nowrap;
-}
-button:hover, .file-btn:hover { background: #3a444a; }
-#fileInput { display: none; }
-#jsonInput {
-  flex: 1;
-  background: #0e1113;
-  color: #c5e3c8;
-  border: none;
-  padding: 16px 18px;
-  font-family: monospace;
-  font-size: 12.8px;
-  line-height: 1.5;
-  resize: none;
-  outline: none;
-}
-#status { padding: 10px 18px; font-size: 12px; border-top: 1px solid #2a3236; }
-#status.ok { color: #7fbf82; }
-#status.error { color: #d9776a; }
-.preview-wrap {
-  flex: 1;
-  overflow: auto;
-  padding: 30px 20px;
-  display: flex;
-  justify-content: center;
-  background: #0f1214;
-}
 .page {
+  font-family: 'Lato', sans-serif;
   display: grid;
   grid-template-columns: 300px 1fr;
   width: 210mm;
@@ -159,10 +98,74 @@ h1 { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 600; 
 .entry-stack { font-size: 12px; color: var(--ink-soft); margin-top: 6px; }
 .entry-stack b { color: var(--ink); font-weight: 700; }
 @media print {
-  .editor { display: none; }
-  .preview-wrap { padding: 0; background: none; overflow: visible; }
   .page { box-shadow: none; height: auto; overflow: visible; }
   @page { size: A4; margin: 0; }
+}
+</style>
+<style id="app-chrome">
+body {
+  font-family: 'Lato', sans-serif;
+  background: #14181a;
+  color: #d7dadb;
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+.editor {
+  width: 420px;
+  min-width: 420px;
+  background: #1c2226;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #2a3236;
+}
+.editor-header { padding: 16px 18px; border-bottom: 1px solid #2a3236; }
+.editor-header h2 { font-size: 14px; letter-spacing: 1px; text-transform: uppercase; color: var(--gold); }
+.editor-toolbar {
+  display: flex;
+  gap: 10px;
+  padding: 12px 18px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+button, .file-btn {
+  background: #2a3236;
+  color: #d7dadb;
+  border: 1px solid #3a444a;
+  border-radius: 4px;
+  padding: 8px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+button:hover, .file-btn:hover { background: #3a444a; }
+#fileInput { display: none; }
+#jsonInput {
+  flex: 1;
+  background: #0e1113;
+  color: #c5e3c8;
+  border: none;
+  padding: 16px 18px;
+  font-family: monospace;
+  font-size: 12.8px;
+  line-height: 1.5;
+  resize: none;
+  outline: none;
+}
+#status { padding: 10px 18px; font-size: 12px; border-top: 1px solid #2a3236; }
+#status.ok { color: #7fbf82; }
+#status.error { color: #d9776a; }
+.preview-wrap {
+  flex: 1;
+  overflow: auto;
+  padding: 30px 20px;
+  display: flex;
+  justify-content: center;
+  background: #0f1214;
+}
+@media print {
+  .editor { display: none; }
+  .preview-wrap { padding: 0; background: none; overflow: visible; }
 }
 </style>
 </head>
@@ -409,9 +412,9 @@ document.getElementById("btnDownloadHtml").addEventListener("click", () => {
 <title>${FIXED.fullName} — CV</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Lato:wght@400;700&display=swap" rel="stylesheet">
-<style>${document.querySelector('style').textContent}
-body{background:var(--paper-bg);height:auto;overflow:visible;display:block;}
-.page{margin:0 auto;height:auto;overflow:visible;}
+<style>${document.getElementById('cv-styles').textContent}
+body{margin:0;background:#e9e5da;display:flex;justify-content:center;padding:24px;}
+.page{margin:0 auto;height:auto;overflow:visible;box-shadow:none;}
 </style>
 </head>
 <body>
