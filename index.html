@@ -31,7 +31,7 @@
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
-.page::-webkit-scrollbar { display: none; }
+.page::-webkit-scrollbar { display: none; width: 0; height: 0; }
 .sidebar { background: var(--sidebar-bg); color: var(--sidebar-text); padding: 40px 32px; }
 .avatar { width: 96px; height: 96px; border-radius: 50%; border: 2px solid var(--gold); margin: 0 auto 32px; overflow: hidden; }
 .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -142,13 +142,11 @@ button:hover, .file-btn:hover { background: #3a444a; }
 <div class="preview-wrap">
   <div class="page" id="preview"></div>
 </div>
-
 <script>
 const FIXED = {
   fullName: "El Habib Benaboud",
   contact: { location: "Lyon", phone: "06 52 68 72 35", email: "elh.benaboud@gmail.com" }
 };
-
 const DEFAULT_DATA = {
   role: "Alternant Développeur Web (H/F)",
   availability: "Disponible dès septembre 2026 — Rythme : 3 semaines entreprise / 1 semaine d'école",
@@ -217,21 +215,33 @@ const DEFAULT_DATA = {
     }
   ]
 };
-
 let currentData = JSON.parse(JSON.stringify(DEFAULT_DATA));
 
-/* ---------- helpers per verifica "vuoto" ---------- */
+function escapeHtml(value) {
+  return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+function escapeAttr(value) {
+  return escapeHtml(value).replace(/"/g, "&quot;");
+}
+function setPath(obj, path, value) {
+  const parts = path.split(".");
+  let cur = obj;
+  for (let i = 0; i < parts.length - 1; i++) {
+    const p = parts[i];
+    cur = cur[/^\d+$/.test(p) ? Number(p) : p];
+  }
+  const last = parts[parts.length - 1];
+  cur[/^\d+$/.test(last) ? Number(last) : last] = value;
+}
 function hasText(v) {
   return typeof v === "string" && v.trim().length > 0;
 }
 
-/* ---------- CV rendering (versione migliorata) ---------- */
 function renderEntry(entry) {
   const bullets = (entry.bulletsText || "")
     .split("\n").map(b => b.trim()).filter(Boolean)
     .map(b => `<li>${escapeHtml(b)}</li>`).join("");
 
-  // Se non c'è nessun contenuto utile, non renderizzare la entry
   if (!hasText(entry.date) && !hasText(entry.title) && !hasText(entry.org) && !bullets && !hasText(entry.stack)) {
     return "";
   }
@@ -259,7 +269,6 @@ function renderSection(section, index) {
       </section>`;
   }
 
-  // type === 'text'
   if (!hasText(section.title) || !hasText(section.content)) return "";
   return `
     <section class="section">
@@ -269,13 +278,11 @@ function renderSection(section, index) {
 }
 
 function renderCV(data) {
-  // Compétences: filtra e mostra solo se ci sono voci valide
   const validSkills = (data.skills || []).filter(s => hasText(s.name) || hasText(s.value));
   const skillsHtml = validSkills.map(s =>
     `<div class="side-item"><strong>${escapeHtml(s.name)} :</strong> ${escapeHtml(s.value)}</div>`
   ).join('');
 
-  // Formation: filtra e mostra solo se ci sono voci valide
   const validFormation = (data.formation || []).filter(f => hasText(f.year) || hasText(f.title) || hasText(f.school));
   const formationHtml = validFormation.map(f => `
     <div class="formation-entry">
@@ -284,7 +291,6 @@ function renderCV(data) {
       ${hasText(f.school) ? `<div class="formation-school">${escapeHtml(f.school)}</div>` : ''}
     </div>`).join('');
 
-  // Liens: filtra e mostra solo se ci sono link validi
   const validLinks = (data.links || []).filter(l => hasText(l.label) && hasText(l.url));
   const linksHtml = validLinks.map(l =>
     `<a href="${escapeAttr(l.url)}" target="_blank" rel="noopener">${escapeHtml(l.label)}</a>`
@@ -314,25 +320,10 @@ function renderCV(data) {
     </main>`;
 }
 
-/* ---------- helpers generali ---------- */
-function escapeHtml(value) {
-  return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-function escapeAttr(value) {
-  return escapeHtml(value).replace(/"/g, "&quot;");
-}
-function setPath(obj, path, value) {
-  const parts = path.split(".");
-  let cur = obj;
-  for (let i = 0; i < parts.length - 1; i++) {
-    const p = parts[i];
-    cur = cur[/^\d+$/.test(p) ? Number(p) : p];
-  }
-  const last = parts[parts.length - 1];
-  cur[/^\d+$/.test(last) ? Number(last) : last] = value;
+function mount() {
+  document.getElementById("preview").innerHTML = renderCV(currentData);
 }
 
-/* ---------- Form rendering & Actions (rimangono invariati) ---------- */
 function field(label, path, value, opts = {}) {
   const val = escapeAttr(value ?? "");
   if (opts.textarea) {
@@ -342,22 +333,134 @@ function field(label, path, value, opts = {}) {
   return `<label class="field-label">${label}</label>
     <input class="field-input" type="text" data-field="${path}" value="${val}" placeholder="${opts.placeholder || ''}">`;
 }
-
 function btn(action, idx, label, extraClass = "") {
   const idxAttr = idx !== undefined ? ` data-idx="${idx}"` : "";
   return `<button type="button" class="${extraClass}" data-action="${action}"${idxAttr}>${label}</button>`;
 }
+function renderForm() {
+  const d = currentData;
+  const general = `
+    <div class="form-section">
+      <div class="form-section-title">Général</div>
+      ${field("Poste recherché", "role", d.role)}
+      ${field("Disponibilité", "availability", d.availability, { placeholder: "Ex : Disponible dès..." })}
+      <div class="avatar-row">
+        <div class="avatar-preview"><img src="${escapeAttr(d.avatarUrl || '')}" alt=""></div>
+        <label class="file-btn" for="avatarFile">🖼️ Changer la photo</label>
+      </div>
+    </div>`;
+  const links = `
+    <div class="form-section">
+      <div class="form-section-title">Liens</div>
+      ${(d.links || []).map((l, i) => `
+        <div class="array-item">
+          <div class="item-header">
+            <span class="item-tag">Lien ${i + 1}</span>
+            ${btn("remove-link", i, "✕ Retirer", "btn-remove")}
+          </div>
+          <div class="array-item-row">
+            <div>${field("Libellé", `links.${i}.label`, l.label)}</div>
+            <div>${field("URL", `links.${i}.url`, l.url)}</div>
+          </div>
+        </div>`).join("")}
+      ${btn("add-link", undefined, "+ Ajouter un lien", "btn-add")}
+    </div>`;
+  const skills = `
+    <div class="form-section">
+      <div class="form-section-title">Compétences</div>
+      ${(d.skills || []).map((s, i) => `
+        <div class="array-item">
+          <div class="item-header">
+            <span class="item-tag">Compétence ${i + 1}</span>
+            ${btn("remove-skill", i, "✕ Retirer", "btn-remove")}
+          </div>
+          <div class="array-item-row">
+            <div>${field("Catégorie", `skills.${i}.name`, s.name)}</div>
+            <div>${field("Détail", `skills.${i}.value`, s.value)}</div>
+          </div>
+        </div>`).join("")}
+      ${btn("add-skill", undefined, "+ Ajouter une compétence", "btn-add")}
+    </div>`;
+  const formation = `
+    <div class="form-section">
+      <div class="form-section-title">Formation</div>
+      ${(d.formation || []).map((f, i) => `
+        <div class="array-item">
+          <div class="item-header">
+            <span class="item-tag">Formation ${i + 1}</span>
+            ${btn("remove-formation", i, "✕ Retirer", "btn-remove")}
+          </div>
+          ${field("Période", `formation.${i}.year`, f.year)}
+          ${field("Intitulé", `formation.${i}.title`, f.title)}
+          ${field("École", `formation.${i}.school`, f.school)}
+        </div>`).join("")}
+      ${btn("add-formation", undefined, "+ Ajouter une formation", "btn-add")}
+    </div>`;
+  const sections = `
+    <div class="form-section">
+      <div class="form-section-title">Sections du CV</div>
+      ${(d.sections || []).map((s, i) => `
+        <div class="array-item">
+          <div class="item-header">
+            <span class="item-tag">Section ${i + 1} — ${s.type === 'entries' ? 'Liste' : 'Texte'}</span>
+            ${btn("remove-section", i, "✕ Retirer", "btn-remove")}
+          </div>
+          ${field("Titre de la section", `sections.${i}.title`, s.title)}
+          <label class="field-label">Type</label>
+          <select class="field-select" data-field="sections.${i}.type">
+            <option value="text" ${s.type !== 'entries' ? 'selected' : ''}>Texte libre</option>
+            <option value="entries" ${s.type === 'entries' ? 'selected' : ''}>Liste d'expériences</option>
+          </select>
+          ${s.type === 'entries' ? `
+            <div class="sub-block">
+              ${(s.items || []).map((it, j) => `
+                <div class="array-item">
+                  <div class="item-header">
+                    <span class="item-tag">Élément ${j + 1}</span>
+                    ${btn("remove-item", `${i},${j}`, "✕ Retirer", "btn-remove")}
+                  </div>
+                  ${field("Date", `sections.${i}.items.${j}.date`, it.date)}
+                  ${field("Titre", `sections.${i}.items.${j}.title`, it.title)}
+                  ${field("Organisation", `sections.${i}.items.${j}.org`, it.org)}
+                  ${field("Points clés (une ligne = un point)", `sections.${i}.items.${j}.bulletsText`, it.bulletsText, { textarea: true })}
+                  ${field("Stack / outils", `sections.${i}.items.${j}.stack`, it.stack)}
+                </div>`).join("")}
+              ${btn("add-item", i, "+ Ajouter un élément", "btn-add")}
+            </div>` : `
+            <div class="sub-block">
+              ${field("Contenu", `sections.${i}.content`, s.content, { textarea: true })}
+            </div>`}
+        </div>`).join("")}
+      ${btn("add-section", undefined, "+ Ajouter une section", "btn-add")}
+    </div>`;
+  document.getElementById("formRoot").innerHTML = general + links + skills + formation + sections;
+}
 
-// (Il resto del codice del form, handleAction, event listeners rimane uguale)
-function renderForm() { /* ... stesso codice che avevi ... */ }
-function handleAction(action, idxStr) { /* ... stesso codice ... */ }
+function handleAction(action, idxStr) {
+  const idxs = idxStr !== undefined ? String(idxStr).split(",").map(Number) : [];
+  switch (action) {
+    case "add-link": currentData.links.push({ label: "Nouveau lien", url: "#" }); break;
+    case "remove-link": currentData.links.splice(idxs[0], 1); break;
+    case "add-skill": currentData.skills.push({ name: "Nouvelle compétence", value: "" }); break;
+    case "remove-skill": currentData.skills.splice(idxs[0], 1); break;
+    case "add-formation": currentData.formation.push({ year: "", title: "", school: "" }); break;
+    case "remove-formation": currentData.formation.splice(idxs[0], 1); break;
+    case "add-section": currentData.sections.push({ title: "Nouvelle section", type: "text", content: "", items: [] }); break;
+    case "remove-section": currentData.sections.splice(idxs[0], 1); break;
+    case "add-item":
+      if (!currentData.sections[idxs[0]].items) currentData.sections[idxs[0]].items = [];
+      currentData.sections[idxs[0]].items.push({ date: "", title: "", org: "", bulletsText: "", stack: "" });
+      break;
+    case "remove-item": currentData.sections[idxs[0]].items.splice(idxs[1], 1); break;
+  }
+  renderForm();
+  mount();
+}
 
-/* ---------- Wiring ---------- */
 const formRoot = document.getElementById("formRoot");
 const statusEl = document.getElementById("status");
 const jsonInput = document.getElementById("jsonInput");
 const jsonPanel = document.getElementById("jsonPanel");
-
 formRoot.addEventListener("input", (e) => {
   const t = e.target;
   if (t.dataset.field) {
@@ -365,7 +468,6 @@ formRoot.addEventListener("input", (e) => {
     mount();
   }
 });
-
 formRoot.addEventListener("change", (e) => {
   const t = e.target;
   if (t.tagName === "SELECT" && t.dataset.field) {
@@ -374,13 +476,11 @@ formRoot.addEventListener("change", (e) => {
     mount();
   }
 });
-
 formRoot.addEventListener("click", (e) => {
   const btnEl = e.target.closest("[data-action]");
   if (!btnEl) return;
   handleAction(btnEl.dataset.action, btnEl.dataset.idx);
 });
-
 document.getElementById("avatarFile").addEventListener("change", (e) => {
   const file = e.target.files[0];
   if (!file) return;
@@ -395,7 +495,6 @@ document.getElementById("avatarFile").addEventListener("change", (e) => {
   reader.readAsDataURL(file);
   e.target.value = "";
 });
-
 document.getElementById("btnReset").addEventListener("click", () => {
   currentData = JSON.parse(JSON.stringify(DEFAULT_DATA));
   renderForm();
@@ -404,7 +503,6 @@ document.getElementById("btnReset").addEventListener("click", () => {
   statusEl.textContent = "Réinitialisé";
   statusEl.className = "ok";
 });
-
 document.getElementById("fileInput").addEventListener("change", (e) => {
   const file = e.target.files[0];
   if (!file) return;
@@ -425,7 +523,6 @@ document.getElementById("fileInput").addEventListener("change", (e) => {
   reader.readAsText(file);
   e.target.value = "";
 });
-
 document.getElementById("btnDownloadJson").addEventListener("click", () => {
   const blob = new Blob([JSON.stringify(currentData, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -434,7 +531,6 @@ document.getElementById("btnDownloadJson").addEventListener("click", () => {
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(url);
 });
-
 document.getElementById("btnDownloadHtml").addEventListener("click", () => {
   const fullHtml = `<!DOCTYPE html>
 <html lang="fr">
@@ -461,7 +557,6 @@ body{margin:0;background:#e9e5da;display:flex;justify-content:center;padding:24p
   });
 });
 
-/* JSON avancé toggle */
 let jsonMode = false;
 let liveTimer = null;
 document.getElementById("btnToggleJson").addEventListener("click", () => {
@@ -470,7 +565,6 @@ document.getElementById("btnToggleJson").addEventListener("click", () => {
   formRoot.style.display = jsonMode ? "none" : "block";
   if (jsonMode) jsonInput.value = JSON.stringify(currentData, null, 2);
 });
-
 jsonInput.addEventListener("input", () => {
   clearTimeout(liveTimer);
   liveTimer = setTimeout(() => {
@@ -487,11 +581,6 @@ jsonInput.addEventListener("input", () => {
   }, 400);
 });
 
-function mount() {
-  document.getElementById("preview").innerHTML = renderCV(currentData);
-}
-
-/* Init */
 renderForm();
 mount();
 jsonInput.value = JSON.stringify(currentData, null, 2);
