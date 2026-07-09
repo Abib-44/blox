@@ -364,16 +364,28 @@ function download(filename, content, mime) {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
-document.getElementById("btnApply").addEventListener("click", () => {
+function applyJson(silent) {
   try {
     currentData = JSON.parse(jsonInput.value);
     mount();
-    statusEl.textContent = "✅ CV mis à jour";
+    statusEl.textContent = silent ? "✅ Aperçu en direct" : "✅ CV mis à jour";
     statusEl.className = "ok";
+    return true;
   } catch (e) {
     statusEl.textContent = "❌ Erreur JSON : " + e.message;
     statusEl.className = "error";
+    return false;
   }
+}
+document.getElementById("btnApply").addEventListener("click", () => {
+  applyJson(false);
+});
+let liveTimer = null;
+jsonInput.addEventListener("input", () => {
+  clearTimeout(liveTimer);
+  liveTimer = setTimeout(() => {
+    applyJson(true);
+  }, 400);
 });
 document.getElementById("btnReset").addEventListener("click", () => {
   currentData = DEFAULT_DATA;
