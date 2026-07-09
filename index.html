@@ -349,6 +349,7 @@ function renderForm() {
       <div class="avatar-row">
         <div class="avatar-preview"><img src="${escapeAttr(d.avatarUrl || '')}" alt=""></div>
         <label class="file-btn" for="avatarFile">🖼️ Changer la photo</label>
+        <input type="file" id="avatarFile" accept="image/*">
       </div>
     </div>`;
   const links = `
@@ -483,7 +484,8 @@ formRoot.addEventListener("click", (e) => {
   if (!btnEl) return;
   handleAction(btnEl.dataset.action, btnEl.dataset.idx);
 });
-document.getElementById("avatarFile").addEventListener("change", (e) => {
+formRoot.addEventListener("change", (e) => {
+  if (e.target.id !== "avatarFile") return;
   const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
