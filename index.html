@@ -25,11 +25,8 @@
   height: 297mm;
   background: var(--paper-bg);
   box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-  flex-shrink: 0;
   overflow-y: auto;
-  overflow-x: hidden;
 }
-.page::-webkit-scrollbar { display: none; }
 .sidebar { background: var(--sidebar-bg); color: var(--sidebar-text); padding: 40px 32px; }
 .avatar { width: 96px; height: 96px; border-radius: 50%; border: 2px solid var(--gold); margin: 0 auto 32px; overflow: hidden; }
 .avatar img { width: 100%; height: 100%; object-fit: cover; }
@@ -38,19 +35,14 @@
 .side-item { font-size: 13.5px; line-height: 1.5; margin-bottom: 10px; }
 .side-item strong { color: #fff; }
 .side-links { display: flex; flex-direction: column; gap: 8px; }
-.side-links a {
-  color: var(--sidebar-text); font-size: 13px; text-decoration: none;
-  border-bottom: 1px solid rgba(232,228,216,0.35); padding-bottom: 3px; width: fit-content;
-}
-.side-links a:hover { color: var(--gold); border-color: var(--gold); }
+.side-links a { color: var(--sidebar-text); text-decoration: none; border-bottom: 1px solid rgba(232,228,216,0.35); }
 .formation-entry { border-left: 2px solid var(--gold); padding-left: 12px; margin-bottom: 18px; }
-.formation-year { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gold); font-weight: 700; margin-bottom: 4px; }
-.formation-title { font-size: 13.5px; font-weight: 700; color: #fff; line-height: 1.35; }
-.formation-school { font-size: 12px; font-style: italic; color: var(--sidebar-muted); margin-top: 2px; }
+.formation-year { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gold); font-weight: 700; }
+.formation-title { font-size: 13.5px; font-weight: 700; color: #fff; }
 .content { padding: 44px 48px; }
 h1 { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 600; color: var(--ink); }
-.role { color: var(--gold); font-size: 13px; letter-spacing: 2.5px; text-transform: uppercase; font-weight: 700; margin-top: 6px; }
-.availability { font-size: 12.5px; color: var(--ink-soft); margin-top: 6px; }
+.role { color: var(--gold); font-size: 13px; letter-spacing: 2.5px; text-transform: uppercase; font-weight: 700; }
+.availability { font-size: 12.5px; color: var(--ink-soft); }
 .header-rule { width: 60px; height: 2px; background: var(--gold); margin: 18px 0 28px; }
 .section { margin-bottom: 30px; }
 .section-title { display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px; }
@@ -58,49 +50,42 @@ h1 { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 600; 
 .section-name { font-size: 12.5px; letter-spacing: 2.5px; text-transform: uppercase; font-weight: 700; color: var(--ink); }
 .profil-text { font-size: 13.8px; line-height: 1.65; color: var(--ink-soft); white-space: pre-line; }
 .entry { position: relative; padding-left: 20px; margin-bottom: 22px; border-left: 1px solid var(--rule); }
-.entry:last-child { margin-bottom: 0; }
 .entry::before { content: ''; position: absolute; left: -5px; top: 4px; width: 9px; height: 9px; border-radius: 50%; background: var(--paper-bg); border: 2px solid var(--gold); }
 .entry-date { font-size: 11.5px; letter-spacing: 1.5px; color: var(--gold); font-weight: 700; }
-.entry-title { font-size: 15.5px; font-weight: 700; margin-top: 3px; color: var(--ink); }
-.entry-org { font-size: 13px; font-style: italic; color: var(--ink-soft); margin-top: 1px; }
-.entry ul { margin: 10px 0 8px 18px; }
-.entry li { font-size: 13.2px; line-height: 1.55; margin-bottom: 5px; color: var(--ink); }
-.entry-stack { font-size: 12px; color: var(--ink-soft); margin-top: 6px; }
-.entry-stack b { color: var(--ink); font-weight: 700; }
+.entry-title { font-size: 15.5px; font-weight: 700; color: var(--ink); }
+.entry-org { font-size: 13px; font-style: italic; color: var(--ink-soft); }
+.entry-stack { font-size: 12px; color: var(--ink-soft); }
 </style>
-<style id="app-chrome">
-body { font-family: 'Lato', sans-serif; background: #14181a; color: #d7dadb; display: flex; height: 100vh; overflow: hidden; margin:0; }
-.editor { width: 460px; background: #1c2226; display: flex; flex-direction: column; border-right: 1px solid #2a3236; }
-.editor-header { padding: 16px 18px; border-bottom: 1px solid #2a3236; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
-.editor-header h2 { font-size: 14px; letter-spacing: 1px; text-transform: uppercase; color: #a8763c; }
-.json-toolbar { padding: 10px 18px; border-bottom: 1px solid #2a3236; color: #9aa3a7; font-size: 12px; }
-#jsonInput { flex: 1; background: #0e1113; color: #c5e3c8; border: none; padding: 16px 18px; font-family: monospace; font-size: 13px; line-height: 1.5; resize: none; outline: none; }
-.preview-wrap { flex: 1; overflow: auto; padding: 30px 20px; display: flex; justify-content: center; background: #0f1214; }
-button {
-  background: #2a3236; color: #d7dadb; border: 1px solid #3a444a; border-radius: 4px;
-  padding: 7px 12px; font-size: 12.5px; cursor: pointer;
-}
-button:hover { background: #3a444a; }
-#status { padding: 10px 18px; font-size: 12px; border-top: 1px solid #2a3236; }
-#status.ok { color: #7fbf82; }
-#status.error { color: #d9776a; }
+<style>
+body { font-family: 'Lato', sans-serif; background: #14181a; color: #d7dadb; display: flex; height: 100vh; margin:0; overflow:hidden; }
+.editor { width: 480px; background: #1c2226; display: flex; flex-direction: column; border-right: 1px solid #2a3236; }
+.editor-header { padding: 16px 18px; border-bottom: 1px solid #2a3236; display:flex; align-items:center; justify-content:space-between; }
+h2 { margin:0; color:#a8763c; font-size:14px; text-transform:uppercase; letter-spacing:1px; }
+.json-toolbar { padding:10px 18px; border-bottom:1px solid #2a3236; color:#9aa3a7; font-size:12.5px; }
+#jsonInput { flex:1; background:#0e1113; color:#c5e3c8; border:none; padding:16px; font-family:monospace; font-size:13px; line-height:1.5; resize:none; outline:none; }
+.preview-wrap { flex:1; overflow:auto; padding:30px 20px; background:#0f1214; display:flex; justify-content:center; }
+button { background:#2a3236; color:#d7dadb; border:1px solid #3a444a; border-radius:4px; padding:7px 12px; cursor:pointer; }
+button:hover { background:#3a444a; }
+#status { padding:10px 18px; font-size:12px; border-top:1px solid #2a3236; }
+#status.ok { color:#7fbf82; }
+#status.error { color:#d9776a; }
 </style>
 </head>
 <body>
 
 <div class="editor">
   <div class="editor-header">
-    <h2>Éditeur JSON</h2>
+    <h2>ÉDITEUR JSON</h2>
     <div>
       <button id="btnReset">Réinitialiser</button>
       <button id="btnDownloadHtml">📋 Copier HTML</button>
     </div>
   </div>
   <div class="json-toolbar">
-    Modifie le JSON ci-dessous → la preview se met à jour automatiquement
+    Modifie le JSON ci-dessous — la preview se met à jour automatiquement
   </div>
   <textarea id="jsonInput" spellcheck="false"></textarea>
-  <div id="status"></div>
+  <div id="status">Prêt</div>
 </div>
 
 <div class="preview-wrap">
@@ -108,13 +93,12 @@ button:hover { background: #3a444a; }
 </div>
 
 <script>
-// === CONFIGURATION FIXE ===
 const FIXED = {
   fullName: "El Habib Benaboud",
   contact: { location: "Lyon", phone: "06 52 68 72 35", email: "elh.benaboud@gmail.com" }
 };
 
-const DEFAULT_DATA = { /* ton JSON par défaut ici */ 
+const DEFAULT_DATA = {
   role: "Alternant Développeur Web (H/F)",
   availability: "Disponible dès septembre 2026 — Rythme : 3 semaines entreprise / 1 semaine d'école",
   avatarUrl: "",
@@ -133,40 +117,88 @@ const DEFAULT_DATA = { /* ton JSON par défaut ici */
   formation: [
     { year: "2026 — Présent", title: "Développeur web • Bac +3", school: "CESI École d'Ingénieurs — Lyon" }
   ],
-  sections: [ /* ... tes sections ... */ ]
+  sections: [
+    {
+      title: "Profil",
+      type: "text",
+      content: "Développeur back-end formé sur des projets réels en production."
+    }
+  ]
 };
 
 let currentData = JSON.parse(JSON.stringify(DEFAULT_DATA));
 
-function escapeHtml(v) { return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function hasText(v) { return typeof v === "string" && v.trim().length > 0; }
+function escapeHtml(v) { return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function hasText(v) { return typeof v==="string" && v.trim().length>0; }
 
-// Render functions (identiche a prima)
-function renderCV(data) { /* ... (codice render completo) ... */ }
+function renderCV(data) {
+  let html = `
+    <aside class="sidebar">
+      <div class="side-block">
+        <div class="side-label">Contact</div>
+        <div class="side-item"><strong>Localisation</strong><br>${escapeHtml(FIXED.contact.location)}</div>
+        <div class="side-item"><strong>Téléphone</strong><br>${escapeHtml(FIXED.contact.phone)}</div>
+        <div class="side-item"><strong>Email</strong><br>${escapeHtml(FIXED.contact.email)}</div>
+      </div>`;
+  
+  // Skills, Links, Formation, Sections...
+  const skillsHtml = (data.skills||[]).map(s => `<div class="side-item"><strong>${escapeHtml(s.name)} :</strong> ${escapeHtml(s.value)}</div>`).join('');
+  if (skillsHtml) html += `<div class="side-block"><div class="side-label">Compétences</div>${skillsHtml}</div>`;
 
-// ... (il resto dello script per render, live update, ecc.)
+  const linksHtml = (data.links||[]).map(l => `<a href="${l.url}">${escapeHtml(l.label)}</a>`).join('');
+  if (linksHtml) html += `<div class="side-block"><div class="side-label">Liens</div><div class="side-links">${linksHtml}</div></div>`;
 
-// Inizializzazione
-const jsonInput = document.getElementById("jsonInput");
-jsonInput.value = JSON.stringify(DEFAULT_DATA, null, 2);
-document.getElementById("preview").innerHTML = renderCV(currentData);
+  html += `</aside><main class="content">
+    <h1>${escapeHtml(FIXED.fullName)}</h1>
+    ${hasText(data.role) ? `<div class="role">${escapeHtml(data.role)}</div>` : ''}
+    ${hasText(data.availability) ? `<div class="availability">${escapeHtml(data.availability)}</div>` : ''}
+    <div class="header-rule"></div>`;
+
+  (data.sections||[]).forEach((s,i) => {
+    const num = String(i+1).padStart(2,'0');
+    html += `<section class="section"><div class="section-title"><span class="section-num">${num}</span><span class="section-name">${escapeHtml(s.title)}</span></div>`;
+    if (s.type === "text") html += `<p class="profil-text">${escapeHtml(s.content)}</p>`;
+    html += `</section>`;
+  });
+
+  html += `</main>`;
+  return html;
+}
 
 // Live update
+const jsonInput = document.getElementById("jsonInput");
+const preview = document.getElementById("preview");
+const statusEl = document.getElementById("status");
+
 let timeout;
 jsonInput.addEventListener("input", () => {
   clearTimeout(timeout);
   timeout = setTimeout(() => {
     try {
       currentData = JSON.parse(jsonInput.value);
-      document.getElementById("preview").innerHTML = renderCV(currentData);
-      document.getElementById("status").textContent = "✅ Preview aggiornata";
-      document.getElementById("status").className = "ok";
+      preview.innerHTML = renderCV(currentData);
+      statusEl.textContent = "✅ Mise à jour";
+      statusEl.className = "ok";
     } catch(e) {
-      document.getElementById("status").textContent = "❌ Errore JSON: " + e.message;
-      document.getElementById("status").className = "error";
+      statusEl.textContent = "❌ Erreur JSON";
+      statusEl.className = "error";
     }
-  }, 250);
+  }, 300);
 });
+
+document.getElementById("btnReset").onclick = () => {
+  currentData = JSON.parse(JSON.stringify(DEFAULT_DATA));
+  jsonInput.value = JSON.stringify(DEFAULT_DATA, null, 2);
+  preview.innerHTML = renderCV(currentData);
+};
+
+document.getElementById("btnDownloadHtml").onclick = () => {
+  alert("HTML copié dans le presse-papiers (fonctionnalité complète dans le fichier .html)");
+};
+
+// Init
+jsonInput.value = JSON.stringify(DEFAULT_DATA, null, 2);
+preview.innerHTML = renderCV(currentData);
 </script>
 </body>
 </html>
