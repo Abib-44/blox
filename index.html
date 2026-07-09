@@ -129,15 +129,14 @@ button:hover, .file-btn:hover { background: #3a444a; }
   </div>
   <div class="editor-toolbar">
     <button id="btnReset">Réinitialiser</button>
-    <button id="btnDownloadJson">↓ Exporter JSON</button>
     <button id="btnDownloadHtml">📋 Copier HTML</button>
   </div>
   <div id="formRoot"></div>
   <div class="json-panel" id="jsonPanel">
     <div class="json-toolbar">
-      <button id="btnApplyJson">✓ Appliquer le JSON collé</button>
+      <button id="btnApplyJson">✓ Appliquer le JSON</button>
     </div>
-    <textarea id="jsonInput" spellcheck="false" placeholder="Collez votre JSON ici..."></textarea>
+    <textarea id="jsonInput" spellcheck="false" placeholder="Écrivez votre JSON ici..."></textarea>
   </div>
   <div id="status"></div>
 </div>
@@ -506,14 +505,6 @@ document.getElementById("btnReset").addEventListener("click", () => {
   jsonInput.value = JSON.stringify(currentData, null, 2);
   statusEl.textContent = "Réinitialisé";
   statusEl.className = "ok";
-});
-document.getElementById("btnDownloadJson").addEventListener("click", () => {
-  const blob = new Blob([JSON.stringify(currentData, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = "cv-data.json";
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  URL.revokeObjectURL(url);
 });
 document.getElementById("btnDownloadHtml").addEventListener("click", () => {
   const fullHtml = `<!DOCTYPE html>
