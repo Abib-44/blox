@@ -35,10 +35,11 @@
 .side-item { font-size: 13.5px; line-height: 1.5; margin-bottom: 10px; }
 .side-item strong { color: #fff; }
 .side-links { display: flex; flex-direction: column; gap: 8px; }
-.side-links a { color: var(--sidebar-text); text-decoration: none; border-bottom: 1px solid rgba(232,228,216,0.35); }
+.side-links a { color: var(--sidebar-text); text-decoration: none; }
 .formation-entry { border-left: 2px solid var(--gold); padding-left: 12px; margin-bottom: 18px; }
 .formation-year { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gold); font-weight: 700; }
 .formation-title { font-size: 13.5px; font-weight: 700; color: #fff; }
+.formation-school { font-size: 12.5px; color: var(--sidebar-muted); margin-top: 2px; }
 .content { padding: 44px 48px; }
 h1 { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 600; color: var(--ink); }
 .role { color: var(--gold); font-size: 13px; letter-spacing: 2.5px; text-transform: uppercase; font-weight: 700; }
@@ -122,66 +123,137 @@ const DEFAULT_DATA = {
       title: "Profil",
       type: "text",
       content: "Développeur back-end formé sur des projets réels en production."
+    },
+    {
+      title: "Expérience",
+      type: "experience",
+      items: [
+        {
+          date: "2025 — 2026",
+          title: "Développeur PHP Junior",
+          org: "Nom Entreprise — Lyon",
+          stack: ["PHP", "Phalcon", "MySQL"]
+        }
+      ]
     }
   ]
 };
 
 let currentData = JSON.parse(JSON.stringify(DEFAULT_DATA));
 
-function escapeHtml(v) { return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
-function hasText(v) { return typeof v==="string" && v.trim().length>0; }
+function escapeHtml(v) { return String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+function hasText(v) { return typeof v === "string" && v.trim().length > 0; }
+
+function renderSection(section, index) {
+  const num = String(index + 1).padStart(2, "0");
+  let body = "";
+
+  if (section.type === "text") {
+    body = `<p class="profil-text">${escapeHtml(section.content)}</p>`;
+  }
+
+  if (section.type === "experience") {
+    body = (section.items || []).map(item => `
+      <div class="entry">
+        <div class="entry-date">${escapeHtml(item.date)}</div>
+        <div class="entry-title">${escapeHtml(item.title)}</div>
+        <div class="entry-org">${escapeHtml(item.org)}</div>
+        ${item.stack ? `<div class="entry-stack">${escapeHtml(Array.isArray(item.stack) ? item.stack.join(" · ") : item.stack)}</div>` : ""}
+      </div>`).join("");
+  }
+
+  if (!body) return "";
+
+  return `<section class="section">
+      <div class="section-title"><span class="section-num">${num}</span><span class="section-name">${escapeHtml(section.title)}</span></div>
+      ${body}
+    </section>`;
+}
 
 function renderCV(data) {
-  let html = `
+  const avatarHtml = hasText(data.avatarUrl)
+    ? `<div class="avatar"><img src="${escapeHtml(data.avatarUrl)}" alt=""></div>`
+    : "";
+
+  const skillsHtml = (data.skills || [])
+    .map(s => `<div class="side-item"><strong>${escapeHtml(s.name)} :</strong> ${escapeHtml(s.value)}</div>`)
+    .join("");
+
+  const linksHtml = (data.links || [])
+    .map(l => `<a href="${escapeHtml(l.url)}">${escapeHtml(l.label)}</a>`)
+    .join("");
+
+  const formationHtml = (data.formation || [])
+    .map(f => `
+      <div class="formation-entry">
+        <div class="formation-year">${escapeHtml(f.year)}</div>
+        <div class="formation-title">${escapeHtml(f.title)}</div>
+        <div class="formation-school">${escapeHtml(f.school)}</div>
+      </div>`)
+    .join("");
+
+  const sectionsHtml = (data.sections || [])
+    .map((s, i) => renderSection(s, i))
+    .join("");
+
+  return `
     <aside class="sidebar">
+      ${avatarHtml}
       <div class="side-block">
         <div class="side-label">Contact</div>
         <div class="side-item"><strong>Localisation</strong><br>${escapeHtml(FIXED.contact.location)}</div>
         <div class="side-item"><strong>Téléphone</strong><br>${escapeHtml(FIXED.contact.phone)}</div>
         <div class="side-item"><strong>Email</strong><br>${escapeHtml(FIXED.contact.email)}</div>
-      </div>`;
-  
-  // Skills, Links, Formation, Sections...
-  const skillsHtml = (data.skills||[]).map(s => `<div class="side-item"><strong>${escapeHtml(s.name)} :</strong> ${escapeHtml(s.value)}</div>`).join('');
-  if (skillsHtml) html += `<div class="side-block"><div class="side-label">Compétences</div>${skillsHtml}</div>`;
-
-  const linksHtml = (data.links||[]).map(l => `<a href="${l.url}">${escapeHtml(l.label)}</a>`).join('');
-  if (linksHtml) html += `<div class="side-block"><div class="side-label">Liens</div><div class="side-links">${linksHtml}</div></div>`;
-
-  html += `</aside><main class="content">
-    <h1>${escapeHtml(FIXED.fullName)}</h1>
-    ${hasText(data.role) ? `<div class="role">${escapeHtml(data.role)}</div>` : ''}
-    ${hasText(data.availability) ? `<div class="availability">${escapeHtml(data.availability)}</div>` : ''}
-    <div class="header-rule"></div>`;
-
-  (data.sections||[]).forEach((s,i) => {
-    const num = String(i+1).padStart(2,'0');
-    html += `<section class="section"><div class="section-title"><span class="section-num">${num}</span><span class="section-name">${escapeHtml(s.title)}</span></div>`;
-    if (s.type === "text") html += `<p class="profil-text">${escapeHtml(s.content)}</p>`;
-    html += `</section>`;
-  });
-
-  html += `</main>`;
-  return html;
+      </div>
+      ${skillsHtml ? `<div class="side-block"><div class="side-label">Compétences</div>${skillsHtml}</div>` : ""}
+      ${linksHtml ? `<div class="side-block"><div class="side-label">Liens</div><div class="side-links">${linksHtml}</div></div>` : ""}
+      ${formationHtml ? `<div class="side-block"><div class="side-label">Formation</div>${formationHtml}</div>` : ""}
+    </aside>
+    <main class="content">
+      <h1>${escapeHtml(FIXED.fullName)}</h1>
+      ${hasText(data.role) ? `<div class="role">${escapeHtml(data.role)}</div>` : ""}
+      ${hasText(data.availability) ? `<div class="availability">${escapeHtml(data.availability)}</div>` : ""}
+      <div class="header-rule"></div>
+      ${sectionsHtml}
+    </main>`;
 }
 
-// Live update
+function buildStandaloneHtml(data) {
+  const styles = document.getElementById("cv-styles").outerHTML;
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CV - ${escapeHtml(FIXED.fullName)}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+${styles}
+</head>
+<body>
+<div class="page">${renderCV(data)}</div>
+</body>
+</html>`;
+}
+
 const jsonInput = document.getElementById("jsonInput");
 const preview = document.getElementById("preview");
 const statusEl = document.getElementById("status");
 
-let timeout;
+function setStatus(text, isError) {
+  statusEl.textContent = text;
+  statusEl.className = isError ? "error" : "ok";
+}
+
+let debounceTimer;
 jsonInput.addEventListener("input", () => {
-  clearTimeout(timeout);
-  timeout = setTimeout(() => {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => {
     try {
       currentData = JSON.parse(jsonInput.value);
       preview.innerHTML = renderCV(currentData);
-      statusEl.textContent = "✅ Mise à jour";
-      statusEl.className = "ok";
-    } catch(e) {
-      statusEl.textContent = "❌ Erreur JSON";
-      statusEl.className = "error";
+      setStatus("✅ Mise à jour", false);
+    } catch (e) {
+      setStatus("❌ Erreur JSON : " + e.message, true);
     }
   }, 300);
 });
@@ -190,13 +262,27 @@ document.getElementById("btnReset").onclick = () => {
   currentData = JSON.parse(JSON.stringify(DEFAULT_DATA));
   jsonInput.value = JSON.stringify(DEFAULT_DATA, null, 2);
   preview.innerHTML = renderCV(currentData);
+  setStatus("Prêt", false);
 };
 
-document.getElementById("btnDownloadHtml").onclick = () => {
-  alert("HTML copié dans le presse-papiers (fonctionnalité complète dans le fichier .html)");
+document.getElementById("btnDownloadHtml").onclick = async () => {
+  const html = buildStandaloneHtml(currentData);
+  try {
+    await navigator.clipboard.writeText(html);
+    setStatus("✅ HTML copié dans le presse-papiers", false);
+  } catch (e) {
+    const ta = document.createElement("textarea");
+    ta.value = html;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+    setStatus("✅ HTML copié (méthode alternative)", false);
+  }
 };
 
-// Init
 jsonInput.value = JSON.stringify(DEFAULT_DATA, null, 2);
 preview.innerHTML = renderCV(currentData);
 </script>
